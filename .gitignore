@@ -1,3 +1,5 @@
 *.fits
 *.gz
 __pycache__
+*~
+*#
