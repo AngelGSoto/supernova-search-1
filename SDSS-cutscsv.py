@@ -1,7 +1,6 @@
 import sys
 import os
 import numpy as np
-#import pyfits
 from astropy.io import fits as pyfits
 from optparse import OptionParser
 import sqlcl    # tools to querry SDSS DR12
@@ -66,11 +65,17 @@ class cd:
 #################################################
 
 def getSDSSfields(ra, dec, size):  # all in degree
-    delta = 0.5*size+0.13
-    ra_max  =  ra+1.5*delta
-    ra_min  =  ra-1.5*delta
-    dec_max =  dec+delta
-    dec_min =  dec-delta
+    delta = size
+    # ra_max  =  ra+1.5*delta
+    # ra_min  =  ra-1.5*delta
+    # dec_max =  dec+delta
+    # dec_min =  dec-delta
+   
+    ra_max = ra + (delta / np.cos(abs(np.radians(dec))))
+    ra_min = ra - (delta / np.cos(abs(np.radians(dec))))
+
+    dec_max =  dec + delta
+    dec_min =  dec - delta
   
     querry = """
   
@@ -219,71 +224,51 @@ if __name__ == '__main__':
   
     width = opts.width
     table = opts.table
-  
+
     csv = pd.read_csv(f'./{table}')
-    ra = csv['RA'][0]
-    dec = csv['DEC'][0]
-
-    if  opts.name == None:
-        print("\n[Warning] No object name were given ...")
-        warning = True
-        ra_st = '{:.4f}'.format(ra)
-        dec_st = '{:.4f}'.format(dec)
-        if dec < 0:
-            objName = 'Obj'+ra_st+'-'+dec_st
-        else: 
-            objName = 'Obj'+ra_st+'+'+dec_st
-        print("Using this name for the object: "+objName)
-    else:
-        objName = opts.name  
-        
-
-    bands = []
-
-    if opts.bands != None:
-        for b in opts.bands:
-            if b in ['u', 'g', 'r', 'i', 'z'] and not b in bands:
-                 bands.append(b)
-    if len(bands) == 0:
-        print("\n[Warning] No output SDSS band is given ...")
-        print("[Warning] Downloading all bands (ugriz) ...")
-        bands = ['u', 'g', 'r', 'i', 'z']
-        warning = True
-  
-    if  opts.outfolder == None:
-        print("\n[Warning] No output folder were provided ...")
-        print("[Warning] Using the current directory to store results ...")
-        warning = True
-        repository = '.'
-    else:
-        repository = opts.outfolder
-        if not os.path.isdir(repository):
-            print("\n[Error] no such directory: " + repository)
-            print("Use -h option for help ... \n", file=sys.stderr)
-            exit(1)
+    
+    for i in range(len(csv)):
+    #for i in range(2):
+        ra = csv['RA'][i]
+        dec = csv['DEC'][i]
+    
+        if  opts.name == None:
+            print("\n[Warning] No object name were given ...")
+            warning = True
+            ra_st = '{:.4f}'.format(ra)
+            dec_st = '{:.4f}'.format(dec)
+            if dec < 0:
+                objName = 'Obj'+ra_st+'-'+dec_st
+            else: 
+                objName = 'Obj'+ra_st+'+'+dec_st
+            print("Using this name for the object: "+objName)
+        else:
+            objName = opts.name  
             
-  
-#  if warning:
-#      
-#    print("\n------------------------------------")
-#    print("[Warning] Use the following Parameters ?")
-#    print("------------------------------------")
-#    print("R.A.       [deg]:", ra)
-#    print("Dec.       [deg]:", dec)
-#    print("FOV-width  [deg]:", width)
-#    print("Object Name     :", objName)
-#    if repository == '.':
-#       print("Output Foldr    : <current folder>")
-#    else: print("Output Foldr    :", repository)
-#    print("SDSS Bands    :", bands)
-#    print("------------------------------------")  
+
+        bands = []
+
+        if opts.bands != None:
+            for b in opts.bands:
+                if b in ['u', 'g', 'r', 'i', 'z'] and not b in bands:
+                     bands.append(b)
+        if len(bands) == 0:
+            print("\n[Warning] No output SDSS band is given ...")
+            print("[Warning] Downloading all bands (ugriz) ...")
+            bands = ['u', 'g', 'r', 'i', 'z']
+            warning = True
       
-    input_var = input("Continue (Y, n)?: ")
-    if input_var.upper() == 'Y' or input_var.upper() == '': 
-        warning = False
-  
-    if not warning:  
+        if  opts.outfolder == None:
+            print("\n[Warning] No output folder were provided ...")
+            print("[Warning] Using the current directory to store results ...")
+            warning = True
+            repository = '.'
+        else:
+            repository = opts.outfolder
+            if not os.path.isdir(repository):
+                print("\n[Error] no such directory: " + repository)
+                print("Use -h option for help ... \n", file=sys.stderr)
+                exit(1)
+                
+        
         sdssget(objName, ra, dec, width, bands, repository+'/')
-#   else: 
-#      print("\nTry again ...")
-#      print("Use the '-h' option for more information ... \n", file=sys.stderr)
