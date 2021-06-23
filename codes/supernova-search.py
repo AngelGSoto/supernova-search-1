@@ -15,7 +15,7 @@ def main():
     outfolder = './data/sdss'
 
     splusCuts(table)
-    #sdssCuts(width, table, bands, outfolder)
+    sdssCuts(width, table, bands, outfolder)
 
 
 # --------------------------------------------------------------------
