@@ -1,24 +1,31 @@
+from __future__ import print_function
 import splusdata
 import pandas as pd
+import numpy as np
 import sys
 import os
-import numpy as np
-from astropy.io import fits as pyfits
 import sqlcl
+from astropy.io import fits
+from astropy import wcs, coordinates as coord, units as u
+from astropy.wcs import WCS
+
 
 def main():
     # Change for different SDSS cuts
     width = 0.075
     table = './data/selected-gals.csv'
     bands = ['r']
-    outfolder = './data/sdss'
+    outfolder_SDSS = './data/sdss'
+    outfolder_SPLUS = './data/splus'
 
     splusCuts(table)
-    sdssCuts(width, table, bands, outfolder)
+    sdssCuts(width, table, bands, outfolder_SDSS)
+    #cutFits(table, outfolder_SPLUS, 10.)
 
 
 # --------------------------------------------------------------------
 # SPLUS CUTS
+# Code by Gustavo Schwarz (www.github.com/Schwarzam/splusdata)
 
 def splusCuts(table):
     conn = splusdata.connect('juliamoliveira', '10203040')
@@ -36,6 +43,7 @@ def splusCuts(table):
 
 # --------------------------------------------------------------------
 # SDSS CUTS
+# Adapted from a code by Ehsan Kourkchi (www.github.com/ekourkchi/SDSS_get)
 
 def sdssCuts(width, table, bands, outfolder):
     def xcmd(cmd, verbose):
@@ -146,11 +154,11 @@ def sdssCuts(width, table, bands, outfolder):
         name = removefix(filename)
         xcmd("cp " + filename + ' ' + name + '.tmp.fits', True)
 
-        hdulist = pyfits.open(filename)
+        hdulist = fits.open(filename)
         prihdr = hdulist[1].header
 
         if edit_zp:
-            hdulist = pyfits.open(name + '.tmp.fits', mode='update')
+            hdulist = fits.open(name + '.tmp.fits', mode='update')
             prihdr = hdulist[0].header
             prihdr['BSCALE'] = 1.
             prihdr['BZERO'] = 0.
@@ -237,6 +245,90 @@ def sdssCuts(width, table, bands, outfolder):
         print('SDSS stamps have been downloaded.')
         print()
 
+
+# --------------------------------------------------------------------
+# CUTTING FITS IMAGES
+# Based on extract-image.py from Henney program and pyFIST.py
+# Adapted from Luis Angel Soto's code (www.github.com/AngelGSoto)
+
+def cutFits(table, outfolder, margin):
+
+    csv = pd.read_csv(f'./{table}')
+
+    # for i in range(len(csv)):
+    for i in range(50):
+        ra = csv['RA'][i]
+        dec = csv['DEC'][i]
+        id_ = csv['ID'][i]
+
+        name = '%s_%.6f_%.6f' % (id_, ra, dec)
+
+        file = name + ".fz"
+
+        path1 = outfolder
+        try:
+            hdu = fits.open(os.path.join(path1, file))
+        except FileNotFoundError:
+            hdu = fits.open(file)
+
+        crop_coords_unit = u.degree
+        crop_c = coord.SkyCoord(ra, dec, unit=(u.deg, u.deg))
+        w = wcs.WCS(hdu[1].header)
+
+        ##########################################################
+        ## Find minimum and maximum RA, DEC ######################
+        ##########################################################
+
+        margin = margin * u.arcsec
+
+        # I had ignore the cos(delta) factor I mean, considering cos(delta)~1 (I should fix that)
+        ra1 = coord.Angle(crop_c.ra.min() - margin)
+        ra2 = coord.Angle(crop_c.ra.max() + margin)
+        dec1 = coord.Angle(crop_c.dec.min() - margin)
+        dec2 = coord.Angle(crop_c.dec.max() + margin)
+
+        ###########################################################
+        ## Rectangle in RA, Dec that encloses object with margin ##
+        ###########################################################
+        coords = [
+            [ra1.deg, dec1.deg],
+            [ra1.deg, dec2.deg],
+            [ra2.deg, dec1.deg],
+            [ra2.deg, dec2.deg],
+        ]
+
+        ##########################################################
+        ## Convert to pixel coords and find enclosing rectangle ##
+        ##########################################################
+        pix_coords = w.wcs_world2pix(coords, 0)
+        x = pix_coords[:, 0]
+        y = pix_coords[:, 1]
+        i1, i2 = int(x.min()), int(x.max()) + 1
+        j1, j2 = int(y.min()), int(y.max()) + 1
+
+        ny, nx = hdu[1].data.shape
+        i1 = max(0, i1)
+        i2 = min(i2, nx - 1)
+        j1 = max(0, j1)
+        j2 = min(j2, ny - 1)
+        print("Extracted image window: [{}:{}, {}:{}]".format(i1, i2, j1, j2))
+
+        #########################################################
+        ## Extract window from image and adjust WCS info ########
+        #########################################################
+        outhdu = fits.PrimaryHDU(
+            data=hdu[1].data[j1:j2, i1:i2],
+            header=hdu[1].header
+        )
+        outhdu.header["CRPIX1"] -= i1
+        outhdu.header["CRPIX2"] -= j1
+
+        ####################
+        # Save the new file##
+        ####################
+        outfile = file.replace(".fits", "-crop.fits")
+        # new_hdu = fits.PrimaryHDU(hdu[0].data, header=hdu[0].header)
+        outhdu.writeto(outfile, output_verify="fix", overwrite=True)
 
 # --------------------------------------------------------------------
 
