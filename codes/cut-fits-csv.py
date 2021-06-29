@@ -23,7 +23,7 @@ parser.add_argument("source", type=str,
                     help="Name of source (prefix for files) ")
 
 parser.add_argument("-t", "--table", type=str,
-                    default="selected-gals.csv",
+                    default="../selected-gals.csv",
                     help="Coordinates table [csv]")
 
 parser.add_argument("-m", "--margin", type=float,
@@ -34,6 +34,7 @@ parser.add_argument("-d", "--debug", action="store_true",
                     help="Print out verbose debugging info about each line in region file")
 
 args = parser.parse_args()
+print('args = ', args)
 regionfile = args.source + ".fits"
 
 path1 = "../"
@@ -62,8 +63,8 @@ csv = pd.read_csv(f'./{table}')
     
 #for i in range(len(csv)):
 for i in range(1):
-    ra = csv['RA'][2]
-    dec = csv['DEC'][2]
+    ra = csv['RA'][0]
+    dec = csv['DEC'][0]
     print(ra, dec)
 
     crop_c = coord.SkyCoord(ra, dec, unit="deg")
