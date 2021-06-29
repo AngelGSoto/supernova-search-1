@@ -13,14 +13,18 @@ from astropy.wcs import WCS
 def main():
     # Change for different SDSS cuts
     width = 0.075
-    table = './data/selected-gals.csv'
+    tablefile = './data/selected-gals.csv'
+    table = pd.read_csv(f'{tablefile}', nrows=50)
     bands = ['r']
     outfolder_SDSS = './data/sdss'
     outfolder_SPLUS = './data/splus'
 
-    splusCuts(table)
-    sdssCuts(width, table, bands, outfolder_SDSS)
-    #cutFits(table, outfolder_SPLUS, 10.)
+    #splusCuts(table)
+    #sdssCuts(width, table, bands, outfolder_SDSS)
+
+    #importar programa de converter pra fits
+
+    cutFits(table, outfolder_SPLUS)
 
 
 # --------------------------------------------------------------------
@@ -30,9 +34,7 @@ def main():
 def splusCuts(table):
     conn = splusdata.connect('juliamoliveira', '10203040')
 
-    df = pd.read_csv(table, nrows=50)
-
-    for key, value in df.iterrows():
+    for key, value in table.iterrows():
         hdu = conn.get_cut(value.RA, value.DEC, 128, 'R')
         hdu.writeto('./data/splus/%s_%.6f_%.6f.fz' % (value.ID, value.RA, value.DEC))
 
@@ -210,13 +212,10 @@ def sdssCuts(width, table, bands, outfolder):
     if __name__ == '__main__':
         warning = True
 
-        csv = pd.read_csv(f'{table}')
-
-        # for i in range(len(csv)):
-        for i in range(50):
-            ra = csv['RA'][i]
-            dec = csv['DEC'][i]
-            id = csv['ID'][i]
+        for i in range(len(table)):
+            ra = table['RA'][i]
+            dec = table['DEC'][i]
+            id = table['ID'][i]
 
             id_st = '{:s}'.format(id)
             ra_st = '{:.6f}'.format(ra)
@@ -253,27 +252,26 @@ def sdssCuts(width, table, bands, outfolder):
 
 def cutFits(table, outfolder, margin):
 
-    csv = pd.read_csv(f'./{table}')
+    #margin =
 
-    # for i in range(len(csv)):
-    for i in range(50):
-        ra = csv['RA'][i]
-        dec = csv['DEC'][i]
-        id_ = csv['ID'][i]
+    for i in range(len(table)):
+        ra = table['RA'][0]
+        dec = table['DEC'][0]
+        id_ = table['ID'][0]
 
         name = '%s_%.6f_%.6f' % (id_, ra, dec)
 
-        file = name + ".fz"
+        filename = name + ".fits"
 
         path1 = outfolder
         try:
-            hdu = fits.open(os.path.join(path1, file))
+            hdu = fits.open(os.path.join(path1, filename))
         except FileNotFoundError:
-            hdu = fits.open(file)
+            hdu = fits.open(filename)
 
         crop_coords_unit = u.degree
         crop_c = coord.SkyCoord(ra, dec, unit=(u.deg, u.deg))
-        w = wcs.WCS(hdu[1].header)
+        w = wcs.WCS(hdu[0].header)
 
         ##########################################################
         ## Find minimum and maximum RA, DEC ######################
@@ -306,7 +304,7 @@ def cutFits(table, outfolder, margin):
         i1, i2 = int(x.min()), int(x.max()) + 1
         j1, j2 = int(y.min()), int(y.max()) + 1
 
-        ny, nx = hdu[1].data.shape
+        ny, nx = hdu[0].data.shape
         i1 = max(0, i1)
         i2 = min(i2, nx - 1)
         j1 = max(0, j1)
@@ -317,8 +315,8 @@ def cutFits(table, outfolder, margin):
         ## Extract window from image and adjust WCS info ########
         #########################################################
         outhdu = fits.PrimaryHDU(
-            data=hdu[1].data[j1:j2, i1:i2],
-            header=hdu[1].header
+            data=hdu[0].data[j1:j2, i1:i2],
+            header=hdu[0].header
         )
         outhdu.header["CRPIX1"] -= i1
         outhdu.header["CRPIX2"] -= j1
@@ -326,9 +324,9 @@ def cutFits(table, outfolder, margin):
         ####################
         # Save the new file##
         ####################
-        outfile = file.replace(".fits", "-crop.fits")
-        # new_hdu = fits.PrimaryHDU(hdu[0].data, header=hdu[0].header)
-        outhdu.writeto(outfile, output_verify="fix", overwrite=True)
+        #outfile = filename.replace(".fits", "-crop.fits") ---- para não reescrever
+
+        outhdu.writeto(filename, output_verify="fix", overwrite=True)
 
 # --------------------------------------------------------------------
 
