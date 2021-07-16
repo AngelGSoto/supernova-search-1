@@ -6,6 +6,7 @@ import sys
 import os
 import sqlcl
 import gzip
+import matplotlib.pyplot as plt
 from astropy.io import fits
 from astropy import wcs, coordinates as coord, units as u
 from astropy.wcs import WCS
