@@ -2,10 +2,9 @@ from astropy.io import fits
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 from reproject import reproject_interp
-#from astropy.utils.data import get_pkg_data_filename
 
-hdu1 = fits.open('frame-r-006372-5-0073.fits')[0]
-hdu2 = fits.open('iDR3.STRIPE82-0001.000260-crop.fits')[0]
+hdu1 = fits.open('frame-r-007778-6-0314.fits')[0]
+hdu2 = fits.open('iDR3.STRIPE82-0001.000087_359.598146_-1.409414-crop.fits')[0]
 
 ax1 = plt.subplot(1,2,1, projection=WCS(hdu2.header))
 ax1.imshow(hdu1.data, origin='lower', vmin=-2.e-4, vmax=5.e-4)
@@ -22,7 +21,6 @@ ax2.coords['dec'].set_axislabel('DEC')
 plt.show()
  
 array, footprint = reproject_interp(hdu1, hdu2.header)
-#print(array, footprint)
 
 ax1 = plt.subplot(1,2,1, projection=WCS(hdu1.header))
 ax1.imshow(array, origin='lower', vmin=-2.e-4, vmax=5.e-4)
