@@ -3,16 +3,11 @@ Cuting images FITS
 Based on extract-image.py from Henney program and pyFIST.py
 '''
 from __future__ import print_function
-import numpy as np
-import json
-import os
 from astropy.io import fits
 from astropy import wcs
-from astropy.wcs import WCS
 from astropy import coordinates as coord
 from astropy import units as u 
 import argparse
-import sys
 import pandas as pd
 
 parser = argparse.ArgumentParser(
@@ -23,7 +18,7 @@ parser.add_argument("source", type=str,
                     help="Name of source (prefix for files) ")
 
 parser.add_argument("-t", "--table", type=str,
-                    default="selected-gals.csv",
+                    default="./data/selected-gals.csv",
                     help="Coordinates table [csv]")
 
 parser.add_argument("-m", "--margin", type=float,
@@ -34,56 +29,37 @@ parser.add_argument("-d", "--debug", action="store_true",
                     help="Print out verbose debugging info about each line in region file")
 
 args = parser.parse_args()
-regionfile = args.source + ".fits"
+regionfile = './data/splus/' + args.source + ".fits"
 
-path1 = "../"
-try:
-    hdu = fits.open(os.path.join(path1, regionfile))
-except FileNotFoundError:
-    hdu = fits.open(regionfile)
-    
+hdu = fits.open(regionfile)
+
 crop_coords_unit=u.degree
-
-# Definition 
-def HMS(angle): 
-    """
-    Convert angle (which has astropy.units units) to an HMS string
-    """
-    return coord.Angle(angle).to_string(u.hour, sep=":")
-
-def DMS(angle): 
-    """
-    Convert angle (which has astropy.units units) to a DMS string
-    """
-    return coord.Angle(angle).to_string(u.degree, sep=":")
 
 table = args.table
 csv = pd.read_csv(f'./{table}')
-    
-#for i in range(len(csv)):
+
 for i in range(1):
-    ra = csv['RA'][0]
-    dec = csv['DEC'][0]
-    print(ra, dec)
+    ra = csv['RA'][i]
+    dec = csv['DEC'][i]
+    id_ = csv['ID'][i]
+
+    name = '%s_%.6f_%.6f' % (id_, ra, dec)
+    filename = name + ".fits"
 
     crop_c = coord.SkyCoord(ra, dec, unit="deg")
-    print(crop_c)
 
     w = wcs.WCS(hdu[0].header)
-    #print(w)
 
     ##########################################################
     ## Find minimum and maximum RA, DEC ######################
     ##########################################################
-    margin = args.margin * u.arcsecond
-    # I had ignore the cos(delta) factor I mean, considering cos(delta)~1 (I should fix that)
-    ra1 =  coord.Angle(crop_c.ra.min() - margin ) 
-    ra2 =  coord.Angle(crop_c.ra.max() + margin ) 
-    dec1 = coord.Angle(crop_c.dec.min() - margin) 
-    dec2 = coord.Angle(crop_c.dec.max() + margin) 
+    margin = args.margin * u.arc
 
-    print("RA range:", HMS(ra1), HMS(ra2))
-    print("Dec range:", DMS(dec1), DMS(dec2))
+    # I had ignore the cos(delta) factor I mean, considering cos(delta)~1 (I should fix that)
+    ra1 = coord.Angle(crop_c.ra.min() - margin)
+    ra2 = coord.Angle(crop_c.ra.max() + margin)
+    dec1 = coord.Angle(crop_c.dec.min() - margin)
+    dec2 = coord.Angle(crop_c.dec.max() + margin)
 
     ###########################################################
     ## Rectangle in RA, Dec that encloses object with margin ##
