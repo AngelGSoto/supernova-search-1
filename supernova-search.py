@@ -5,10 +5,13 @@ import numpy as np
 import sys
 import os
 import sqlcl
+import gzip
 from astropy.io import fits
 from astropy import wcs, coordinates as coord, units as u
 from astropy.wcs import WCS
-
+from reproject import reproject_interp
+from scipy.ndimage import gaussian_filter
+from scipy import misc
 
 def main():
     # Change for different SDSS cuts
@@ -16,12 +19,14 @@ def main():
     tablefile = './data/selected-gals.csv'
     table = pd.read_csv(f'{tablefile}', nrows=50)
     bands = ['r']
-    outfolder_SDSS = './data/sdss'
-    outfolder_SPLUS = './data/splus'
+    outfolder_sdss = './data/sdss'
+    outfolder_splus = './data/splus'
 
     #splusCuts(table, bands[0])
-    #sdssCuts(width, table, bands, outfolder_SDSS)
-    cutFits(table, bands[0])
+    #sdssCuts(width, table, bands, outfolder_sdss)
+    #cutFits(table, bands[0])
+    #reprojection(table, outfolder_splus, outfolder_sdss)
+    gaussian()
 
 # --------------------------------------------------------------------
 # FZ TO FITS
@@ -244,7 +249,6 @@ def sdssCuts(width, table, bands, outfolder):
 
         print('\nSDSS stamps have been downloaded.')
 
-
 # --------------------------------------------------------------------
 # CUTTING FITS IMAGES
 # Based on extract-image.py from Henney program and pyFIST.py
@@ -252,8 +256,7 @@ def sdssCuts(width, table, bands, outfolder):
 
 def cutFits(table, bands):
 
-    #for i in range(len(table)):
-    for i in range(3):
+    for i in range(len(table)):
         ra = table['RA'][i]
         dec = table['DEC'][i]
         id_ = table['ID'][i]
@@ -322,6 +325,45 @@ def cutFits(table, bands):
         outhdu.writeto(outfile, output_verify="fix", overwrite=True)
 
         #outhdu.writeto(filename, output_verify="fix", overwrite=True)
+
+# --------------------------------------------------------------------
+# REPROJECTING FITS
+
+def reprojection(table, outfolder_splus, outfolder_sdss):
+
+    for i in range(len(table)):
+        ra = table['RA'][i]
+        dec = table['DEC'][i]
+        id_ = table['ID'][i]
+
+        name = '%s_%.6f_%.6f' % (id_, ra, dec)
+        hdu_splus = fits.open(outfolder_splus + '/' + name + '-crop.fits')[0]
+
+        sdss_files = os.listdir(outfolder_sdss + '/' + name)
+        filename_sdss = outfolder_sdss + '/' + name + '/' + sdss_files[0]
+        hdu_sdss = fits.open(gzip.open(filename_sdss))[0]
+
+        array, footprint = reproject_interp(hdu_sdss, hdu_splus.header)
+        fits.writeto(outfolder_sdss + '/' + name + '/' + name + '.fits', array, hdu_sdss.header, overwrite=True)
+
+# --------------------------------------------------------------------
+# APLLYING GAUSSIAN FILTER
+
+def gaussian():
+
+    fig = plt.figure()
+    # hdu = fits.open('frame-r-006372-5-0073.fits')
+    hdu = fits.open('iDR3.STRIPE82-0001.000260-crop.fits')
+    data = hdu[0].data
+    ax1 = fig.add_subplot(121)
+    ax2 = fig.add_subplot(122)
+    ascent = data
+    result = gaussian_filter(data, sigma=1)
+    ax1.imshow(ascent, vmin=0, vmax=3)
+    ax2.imshow(result, vmin=0, vmax=3)
+    plt.show()
+
+    #criar arquivo fits
 
 # --------------------------------------------------------------------
 
