@@ -19,29 +19,34 @@ def main():
     outfolder_SDSS = './data/sdss'
     outfolder_SPLUS = './data/splus'
 
-    #splusCuts(table)
+    #splusCuts(table, bands[0])
     #sdssCuts(width, table, bands, outfolder_SDSS)
+    cutFits(table, bands[0])
 
-    #importar programa de converter pra fits
+# --------------------------------------------------------------------
+# FZ TO FITS
+# Based on the program of Gabriel
 
-    cutFits(table, outfolder_SPLUS)
-
+def fz2fits(image):
+    data_ = fits.open(image)[1].data
+    header_ = fits.open(image)[1].header
+    imageout = image[:-2] + 'fits'
+    fits.writeto(imageout, data_, header_, overwrite=True)
 
 # --------------------------------------------------------------------
 # SPLUS CUTS
 # Code by Gustavo Schwarz (www.github.com/Schwarzam/splusdata)
 
-def splusCuts(table):
+def splusCuts(table, bands):
     conn = splusdata.connect('juliamoliveira', '10203040')
 
     for key, value in table.iterrows():
-        hdu = conn.get_cut(value.RA, value.DEC, 128, 'R')
-        hdu.writeto('./data/splus/%s_%.6f_%.6f.fz' % (value.ID, value.RA, value.DEC))
+        hdu = conn.get_cut(value.RA, value.DEC, 128, bands.capitalize())
+        imagename = './data/splus/%s_%.6f_%.6f.fz' % (value.ID, value.RA, value.DEC)
+        hdu.writeto(imagename)
+        fz2fits(imagename)
 
-    print()
-    print('SPLUS stamps have been downloaded.')
-    print()
-
+    print('\nSPLUS stamps have been downloaded.')
 
 # --------------------------------------------------------------------
 # SDSS CUTS
@@ -220,11 +225,8 @@ def sdssCuts(width, table, bands, outfolder):
             id_st = '{:s}'.format(id)
             ra_st = '{:.6f}'.format(ra)
             dec_st = '{:.6f}'.format(dec)
-            if dec < 0:
-                objName = id_st + '_' + ra_st + '_' + '-' + dec_st + '_sdss'
-            else:
-                objName = id_st + '_' + ra_st + '_' + '+' + dec_st + '_sdss'
-            print("Using this name for the object: " + objName)
+            objName = id_st + '_' + ra_st + '_' + dec_st
+            #print("Using this name for the object: " + objName)
 
             if outfolder == None:
                 print("\n[Warning] No output folder were provided ...")
@@ -240,9 +242,7 @@ def sdssCuts(width, table, bands, outfolder):
 
             sdssget(objName, ra, dec, width, bands, repository + '/')
 
-        print()
-        print('SDSS stamps have been downloaded.')
-        print()
+        print('\nSDSS stamps have been downloaded.')
 
 
 # --------------------------------------------------------------------
@@ -250,34 +250,28 @@ def sdssCuts(width, table, bands, outfolder):
 # Based on extract-image.py from Henney program and pyFIST.py
 # Adapted from Luis Angel Soto's code (www.github.com/AngelGSoto)
 
-def cutFits(table, outfolder, margin):
+def cutFits(table, bands):
 
-    #margin =
+    #for i in range(len(table)):
+    for i in range(3):
+        ra = table['RA'][i]
+        dec = table['DEC'][i]
+        id_ = table['ID'][i]
+        fwhm = table['FWHM_' + bands.capitalize()][i]
 
-    for i in range(len(table)):
-        ra = table['RA'][0]
-        dec = table['DEC'][0]
-        id_ = table['ID'][0]
+        margin = 5 * fwhm * u.arcsec
 
-        name = '%s_%.6f_%.6f' % (id_, ra, dec)
-
+        name = './data/splus/%s_%.6f_%.6f' % (id_, ra, dec)
         filename = name + ".fits"
 
-        path1 = outfolder
-        try:
-            hdu = fits.open(os.path.join(path1, filename))
-        except FileNotFoundError:
-            hdu = fits.open(filename)
+        hdu_ = fits.open(filename)
+        crop_c = coord.SkyCoord(ra, dec, unit="deg")
 
-        crop_coords_unit = u.degree
-        crop_c = coord.SkyCoord(ra, dec, unit=(u.deg, u.deg))
-        w = wcs.WCS(hdu[0].header)
+        w = wcs.WCS(hdu_[0].header)
 
         ##########################################################
         ## Find minimum and maximum RA, DEC ######################
         ##########################################################
-
-        margin = margin * u.arcsec
 
         # I had ignore the cos(delta) factor I mean, considering cos(delta)~1 (I should fix that)
         ra1 = coord.Angle(crop_c.ra.min() - margin)
@@ -304,19 +298,19 @@ def cutFits(table, outfolder, margin):
         i1, i2 = int(x.min()), int(x.max()) + 1
         j1, j2 = int(y.min()), int(y.max()) + 1
 
-        ny, nx = hdu[0].data.shape
+        ny, nx = hdu_[0].data.shape
         i1 = max(0, i1)
         i2 = min(i2, nx - 1)
         j1 = max(0, j1)
         j2 = min(j2, ny - 1)
-        print("Extracted image window: [{}:{}, {}:{}]".format(i1, i2, j1, j2))
+        #print("Extracted image window: [{}:{}, {}:{}]".format(i1, i2, j1, j2))
 
         #########################################################
         ## Extract window from image and adjust WCS info ########
         #########################################################
         outhdu = fits.PrimaryHDU(
-            data=hdu[0].data[j1:j2, i1:i2],
-            header=hdu[0].header
+            data=hdu_[0].data[j1:j2, i1:i2],
+            header=hdu_[0].header
         )
         outhdu.header["CRPIX1"] -= i1
         outhdu.header["CRPIX2"] -= j1
@@ -324,9 +318,10 @@ def cutFits(table, outfolder, margin):
         ####################
         # Save the new file##
         ####################
-        #outfile = filename.replace(".fits", "-crop.fits") ---- para não reescrever
+        outfile = filename.replace(".fits", "-crop.fits")
+        outhdu.writeto(outfile, output_verify="fix", overwrite=True)
 
-        outhdu.writeto(filename, output_verify="fix", overwrite=True)
+        #outhdu.writeto(filename, output_verify="fix", overwrite=True)
 
 # --------------------------------------------------------------------
 
