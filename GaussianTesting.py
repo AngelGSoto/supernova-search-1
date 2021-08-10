@@ -48,8 +48,8 @@ ax3.set_title('Gaussian', fontsize=10)
 plt.show()
 
 print('\nSPLUS')
-print('Original (min e max): %s and %s' % (hdu_splus[0].data.min(), hdu_splus[0].data.max()))
-print('Final (min e max): %s and %s' % (result1.min(), result1.max()))
+print('Original (min and max): %s and %s' % (hdu_splus[0].data.min(), hdu_splus[0].data.max()))
+print('Final (min and max): %s and %s' % (result1.min(), result1.max()))
 print('----------------------------------------------------')
 
 
@@ -82,8 +82,8 @@ ax3.set_title('Gaussian', fontsize=10)
 plt.show()
 
 print('\nSDSS')
-print('Original (min e max): %s and %s' % (hdu_sdss[0].data.min(), hdu_sdss[0].data.max()))
-print('Final (min e max): %s and %s' % (result2.min(), result2.max()))
+print('Original (min and max): %s and %s' % (hdu_sdss[0].data.min(), hdu_sdss[0].data.max()))
+print('Final (min and max): %s and %s' % (result2.min(), result2.max()))
 print('----------------------------------------------------')
 
 
@@ -97,5 +97,5 @@ fig.colorbar(im)
 plt.title('Residue (SPLUS - SDSS)')
 plt.show()
 
-print('\nResidue (min e max): %s and %s' % (res.min(), res.max()))
+print('\nResidue (min and max): %s and %s' % (res.min(), res.max()))
 print('Standard Deviation: %s \nMedian: %s' % (np.std(res), np.median(res)))
