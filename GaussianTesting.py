@@ -5,6 +5,7 @@ from astropy.convolution import convolve, Gaussian2DKernel, Box2DKernel
 from astropy.visualization import MinMaxInterval
 from scipy.ndimage import gaussian_filter
 
+
 hdu_splus = fits.open('iDR3.STRIPE82-0001.000148_359.515791_-1.407501-crop.fits')
 hdu_sdss = fits.open('iDR3.STRIPE82-0001.000148_359.515791_-1.407501-rep.fits')
 
@@ -47,8 +48,8 @@ ax3.set_title('Gaussian', fontsize=10)
 plt.show()
 
 print('\nSPLUS')
-print('Original (min e max): ', hdu_splus[0].data.min(), hdu_splus[0].data.max())
-print('Final (min e max): ', result1.min(), result1.max())
+print('Original (min e max): %s and %s' % (hdu_splus[0].data.min(), hdu_splus[0].data.max()))
+print('Final (min e max): %s and %s' % (result1.min(), result1.max()))
 print('----------------------------------------------------')
 
 
@@ -81,8 +82,8 @@ ax3.set_title('Gaussian', fontsize=10)
 plt.show()
 
 print('\nSDSS')
-print('Original (min e max): ', hdu_sdss[0].data.min(), hdu_sdss[0].data.max())
-print('Final (min e max): ', result2.min(), result2.max())
+print('Original (min e max): %s and %s' % (hdu_sdss[0].data.min(), hdu_sdss[0].data.max()))
+print('Final (min e max): %s and %s' % (result2.min(), result2.max()))
 print('----------------------------------------------------')
 
 
@@ -96,4 +97,5 @@ fig.colorbar(im)
 plt.title('Residue (SPLUS - SDSS)')
 plt.show()
 
-print('\nResidue (min e max): ', res.min(), res.max())
+print('\nResidue (min e max): %s and %s' % (res.min(), res.max()))
+print('Standard Deviation: %s \nMedian: %s' % (np.std(res), np.median(res)))
