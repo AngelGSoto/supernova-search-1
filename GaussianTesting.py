@@ -19,8 +19,11 @@ ax2 = fig.add_subplot(132)
 ax3 = fig.add_subplot(133)
 
 # Resampling
-ax1.imshow(hdu_splus[0].data, origin='lower')
+m, s = np.mean(hdu[0].data), np.std(hdu[0].data)
+ax1.imshow(hdu_splus[0].data, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
+#ax1.imshow(hdu_splus[0].data, origin='lower')
 ax1.set_title('Resampled', fontsize=10)
+
 
 # Normalization
 max_splus = hdu_splus[0].data.max()
