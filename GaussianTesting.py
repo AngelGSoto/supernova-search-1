@@ -19,16 +19,22 @@ ax2 = fig.add_subplot(132)
 ax3 = fig.add_subplot(133)
 
 # Resampling
-m, s = np.mean(hdu[0].data), np.std(hdu[0].data)
+m, s = np.mean(hdu_splus[0].data), np.std(hdu_splus[0].data)
 ax1.imshow(hdu_splus[0].data, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
-#ax1.imshow(hdu_splus[0].data, origin='lower')
+'''
+ax1.imshow(hdu_splus[0].data, origin='lower')
+'''
 ax1.set_title('Resampled', fontsize=10)
 
 
 # Normalization
 max_splus = hdu_splus[0].data.max()
 norm_splus = hdu_splus[0].data / max_splus
+m, s = np.mean(norm_splus), np.std(norm_splus)
+ax2.imshow(norm_splus, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
+'''
 ax2.imshow(norm_splus, origin='lower')
+'''
 ax2.set_title('Normalized', fontsize=10)
 
 '''
@@ -46,7 +52,11 @@ vmin1, vmax1 = interval1.get_limits(hdu_splus[0].data)
 result1 = gaussian_filter(hdu_splus[0].data, sigma=5)
 max_gauss1 = result1.max()
 result1 = result1 / max_gauss1
+m, s = np.mean(result1), np.std(result1)
+ax3.imshow(result1, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
+'''
 ax3.imshow(result1, origin='lower')
+'''
 ax3.set_title('Gaussian', fontsize=10)
 plt.show()
 
@@ -65,13 +75,21 @@ ax2 = fig.add_subplot(132)
 ax3 = fig.add_subplot(133)
 
 # Resampling
+m, s = np.mean(hdu_sdss[0].data), np.std(hdu_sdss[0].data)
+ax1.imshow(hdu_sdss[0].data, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
+'''
 ax1.imshow(hdu_sdss[0].data, origin='lower')
+'''
 ax1.set_title('Resampled', fontsize=10)
 
 # Normalization
 max_norm = hdu_sdss[0].data.max()
 norm_sdss = hdu_sdss[0].data / max_norm
+m, s = np.mean(norm_sdss), np.std(norm_sdss)
+ax2.imshow(norm_sdss, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
+'''
 ax2.imshow(norm_sdss, origin='lower')
+'''
 ax2.set_title('Normalized', fontsize=10)
 
 # Gaussian
@@ -80,7 +98,11 @@ vmin2, vmax2 = interval2.get_limits(hdu_sdss[0].data)
 result2 = gaussian_filter(hdu_sdss[0].data, sigma=5)
 max_gauss2 = result2.max()
 result2 = result2 / max_gauss2
+m, s = np.mean(result2), np.std(result2)
+ax3.imshow(result2, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
+'''
 ax3.imshow(result2, origin='lower')
+'''
 ax3.set_title('Gaussian', fontsize=10)
 plt.show()
 
@@ -95,7 +117,11 @@ print('----------------------------------------------------')
 res = result1 - result2
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
+m, s = np.mean(res), np.std(res)
+im = ax.imshow(res, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
+'''
 im = ax.imshow(res, origin='lower')
+'''
 fig.colorbar(im)
 plt.title('Residue (SPLUS - SDSS)')
 plt.show()
