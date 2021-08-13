@@ -9,6 +9,12 @@ from scipy.ndimage import gaussian_filter
 hdu_splus = fits.open('iDR3.STRIPE82-0001.000148_359.515791_-1.407501-crop.fits')
 hdu_sdss = fits.open('iDR3.STRIPE82-0001.000148_359.515791_-1.407501-rep.fits')
 
+#hdu_splus = fits.open('iDR3.STRIPE82-0001.000098_0.152506_-1.409033-crop.fits')
+#hdu_sdss = fits.open('iDR3.STRIPE82-0001.000098_0.152506_-1.409033-rep.fits')
+
+#hdu_splus = fits.open('iDR3.STRIPE82-0001.000112_359.389440_-1.408599-crop.fits')
+#hdu_sdss = fits.open('iDR3.STRIPE82-0001.000112_359.389440_-1.408599-rep.fits')
+
 
 ### SPLUS ###
 
@@ -19,46 +25,33 @@ ax2 = fig.add_subplot(132)
 ax3 = fig.add_subplot(133)
 
 # Resampling
-m, s = np.mean(hdu_splus[0].data), np.std(hdu_splus[0].data)
-ax1.imshow(hdu_splus[0].data, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
-'''
 ax1.imshow(hdu_splus[0].data, origin='lower')
-'''
 ax1.set_title('Resampled', fontsize=10)
-
 
 # Normalization
 max_splus = hdu_splus[0].data.max()
 norm_splus = hdu_splus[0].data / max_splus
-m, s = np.mean(norm_splus), np.std(norm_splus)
-ax2.imshow(norm_splus, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
-'''
 ax2.imshow(norm_splus, origin='lower')
-'''
 ax2.set_title('Normalized', fontsize=10)
 
-'''
 # Gaussian
-gauss_kernel = Gaussian2DKernel(2)
-smoothed_data_gauss = convolve(hdu_splus[0].data, gauss_kernel)
-ax3.imshow(smoothed_data_gauss, origin='lower')
+gauss_kernel = Gaussian2DKernel(1)
+result1 = convolve(hdu_splus[0].data, gauss_kernel)
+ax3.imshow(result1, origin='lower')
 ax3.set_title('Gaussian', fontsize=10)
 plt.show()
-'''
 
+'''
 # Gaussian
 interval1 = MinMaxInterval()
 vmin1, vmax1 = interval1.get_limits(hdu_splus[0].data)
-result1 = gaussian_filter(hdu_splus[0].data, sigma=5)
+result1 = gaussian_filter(hdu_splus[0].data, sigma=1)
 max_gauss1 = result1.max()
 result1 = result1 / max_gauss1
-m, s = np.mean(result1), np.std(result1)
-ax3.imshow(result1, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
-'''
 ax3.imshow(result1, origin='lower')
-'''
 ax3.set_title('Gaussian', fontsize=10)
 plt.show()
+'''
 
 print('\nSPLUS')
 print('Original (min and max): %s and %s' % (hdu_splus[0].data.min(), hdu_splus[0].data.max()))
@@ -75,36 +68,33 @@ ax2 = fig.add_subplot(132)
 ax3 = fig.add_subplot(133)
 
 # Resampling
-m, s = np.mean(hdu_sdss[0].data), np.std(hdu_sdss[0].data)
-ax1.imshow(hdu_sdss[0].data, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
-'''
 ax1.imshow(hdu_sdss[0].data, origin='lower')
-'''
 ax1.set_title('Resampled', fontsize=10)
 
 # Normalization
 max_norm = hdu_sdss[0].data.max()
 norm_sdss = hdu_sdss[0].data / max_norm
-m, s = np.mean(norm_sdss), np.std(norm_sdss)
-ax2.imshow(norm_sdss, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
-'''
 ax2.imshow(norm_sdss, origin='lower')
-'''
 ax2.set_title('Normalized', fontsize=10)
 
 # Gaussian
-interval2 = MinMaxInterval()
-vmin2, vmax2 = interval2.get_limits(hdu_sdss[0].data)
-result2 = gaussian_filter(hdu_sdss[0].data, sigma=5)
-max_gauss2 = result2.max()
-result2 = result2 / max_gauss2
-m, s = np.mean(result2), np.std(result2)
-ax3.imshow(result2, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
-'''
+gauss_kernel = Gaussian2DKernel(1)
+result2 = convolve(hdu_sdss[0].data, gauss_kernel)
 ax3.imshow(result2, origin='lower')
-'''
 ax3.set_title('Gaussian', fontsize=10)
 plt.show()
+
+'''
+# Gaussian
+interval2 = MinMaxInterval()
+vmin2, vmax2 = interval2.get_limits(hdu_sdss[0].data)
+result2 = gaussian_filter(hdu_sdss[0].data, sigma=1)
+max_gauss2 = result2.max()
+result2 = result2 / max_gauss2
+ax3.imshow(result2, origin='lower')
+ax3.set_title('Gaussian', fontsize=10)
+plt.show()
+'''
 
 print('\nSDSS')
 print('Original (min and max): %s and %s' % (hdu_sdss[0].data.min(), hdu_sdss[0].data.max()))
@@ -114,17 +104,69 @@ print('----------------------------------------------------')
 
 ### RESIDUE ###
 
-res = result1 - result2
+res = hdu_splus[0].data - hdu_sdss[0].data
+res_norm = norm_splus - norm_sdss
+res_gauss = result1 - result2
+
 fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-m, s = np.mean(res), np.std(res)
-im = ax.imshow(res, interpolation='nearest', vmin=m-s, vmax=m+s, origin='lower')
-'''
-im = ax.imshow(res, origin='lower')
-'''
-fig.colorbar(im)
-plt.title('Residue (SPLUS - SDSS)')
+fig.suptitle('Residue (SPLUS - SDSS)')
+ax1 = fig.add_subplot(131)
+ax2 = fig.add_subplot(132)
+ax3 = fig.add_subplot(133)
+ax1.imshow(res, origin='lower')
+ax1.set_title('Residue', fontsize=8)
+ax2.imshow(res_norm, origin='lower')
+ax2.set_title('Normalized Residue', fontsize=8)
+ax3.imshow(res_gauss, origin='lower')
+ax3.set_title('Gaussian Residue', fontsize=8)
+#fig.colorbar(im)
 plt.show()
+
 
 print('\nResidue (min and max): %s and %s' % (res.min(), res.max()))
 print('Standard Deviation: %s \nMedian: %s' % (np.std(res), np.median(res)))
+print('----------------------------------------------------')
+print('\nResidue (Normalized) (min and max): %s and %s' % (res_norm.min(), res_norm.max()))
+print('Standard Deviation: %s \nMedian: %s' % (np.std(res_norm), np.median(res_norm)))
+print('----------------------------------------------------')
+print('\nResidue (Gauss) (min and max): %s and %s' % (res_gauss.min(), res_gauss.max()))
+print('Standard Deviation: %s \nMedian: %s' % (np.std(res_gauss), np.median(res_gauss)))
+
+fig = plt.figure()
+ax1 = fig.add_subplot(331)
+ax2 = fig.add_subplot(332)
+ax3 = fig.add_subplot(333)
+ax4 = fig.add_subplot(334)
+ax5 = fig.add_subplot(335)
+ax6 = fig.add_subplot(336)
+ax7 = fig.add_subplot(337)
+ax8 = fig.add_subplot(338)
+ax9 = fig.add_subplot(339)
+
+ax1.imshow(hdu_splus[0].data, origin='lower')
+ax1.set_title('Resampled SPLUS', fontsize=8)
+ax2.imshow(norm_splus, origin='lower')
+ax2.set_title('Normalized SPLUS', fontsize=8)
+ax3.imshow(result1, origin='lower')
+ax3.set_title('Gaussian SPLUS', fontsize=8)
+
+ax4.imshow(hdu_sdss[0].data, origin='lower')
+ax4.set_title('Resampled SDSS', fontsize=8)
+ax5.imshow(norm_sdss, origin='lower')
+ax5.set_title('Normalized SDSS', fontsize=8)
+ax6.imshow(result2, origin='lower')
+ax6.set_title('Gaussian SDSS', fontsize=8)
+
+im7 = ax7.imshow(res, origin='lower')
+ax7.set_title('Resampled Residue', fontsize=8)
+plt.colorbar(im7, ax=ax7)
+im8 = ax8.imshow(res_norm, origin='lower')
+ax8.set_title('Normalized Residue', fontsize=8)
+plt.setp(ax8.get_yticklabels(), visible=False)
+plt.colorbar(im8, ax=ax8)
+im9 = ax9.imshow(res_gauss, origin='lower')
+ax9.set_title('Gaussian Residue', fontsize=8)
+plt.setp(ax9.get_yticklabels(), visible=False)
+plt.colorbar(im9, ax=ax9)
+
+plt.show()
