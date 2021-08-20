@@ -5,15 +5,17 @@ from astropy.convolution import convolve, Gaussian2DKernel, Box2DKernel
 from astropy.visualization import MinMaxInterval
 from scipy.ndimage import gaussian_filter
 
+id98 = 'iDR3.STRIPE82-0001.000098_0.152506_-1.409033'
+id112 = 'iDR3.STRIPE82-0001.000112_359.389440_-1.408599'
+id128 = 'iDR3.STRIPE82-0001.000128_359.817735_-1.408191'
+id148 = 'iDR3.STRIPE82-0001.000148_359.515791_-1.407501'
+id165 = 'iDR3.STRIPE82-0001.000165_359.898317_-1.406894'
 
-hdu_splus = fits.open('iDR3.STRIPE82-0001.000148_359.515791_-1.407501-crop.fits')
-hdu_sdss = fits.open('iDR3.STRIPE82-0001.000148_359.515791_-1.407501-rep.fits')
+id = id128
 
-#hdu_splus = fits.open('iDR3.STRIPE82-0001.000098_0.152506_-1.409033-crop.fits')
-#hdu_sdss = fits.open('iDR3.STRIPE82-0001.000098_0.152506_-1.409033-rep.fits')
-
-#hdu_splus = fits.open('iDR3.STRIPE82-0001.000112_359.389440_-1.408599-crop.fits')
-#hdu_sdss = fits.open('iDR3.STRIPE82-0001.000112_359.389440_-1.408599-rep.fits')
+hdu_splus = fits.open(id + '-crop.fits')
+hdu_sdss = fits.open(id + '-rep.fits')
+#hdu_sdss = fits.open('frame-r-007778-6-0316.fits')
 
 
 ### SPLUS ###
@@ -37,6 +39,8 @@ ax2.set_title('Normalized', fontsize=10)
 # Gaussian
 gauss_kernel = Gaussian2DKernel(1)
 result1 = convolve(hdu_splus[0].data, gauss_kernel)
+max_splus = result1.max()
+result1 = result1 / max_splus
 ax3.imshow(result1, origin='lower')
 ax3.set_title('Gaussian', fontsize=10)
 plt.show()
@@ -80,6 +84,8 @@ ax2.set_title('Normalized', fontsize=10)
 # Gaussian
 gauss_kernel = Gaussian2DKernel(1)
 result2 = convolve(hdu_sdss[0].data, gauss_kernel)
+max_sdss = result2.max()
+result2 = result2 / max_sdss
 ax3.imshow(result2, origin='lower')
 ax3.set_title('Gaussian', fontsize=10)
 plt.show()
@@ -133,6 +139,7 @@ print('\nResidue (Gauss) (min and max): %s and %s' % (res_gauss.min(), res_gauss
 print('Standard Deviation: %s \nMedian: %s' % (np.std(res_gauss), np.median(res_gauss)))
 
 fig = plt.figure()
+fig.suptitle(id)
 ax1 = fig.add_subplot(331)
 ax2 = fig.add_subplot(332)
 ax3 = fig.add_subplot(333)
@@ -169,4 +176,5 @@ ax9.set_title('Gaussian Residue', fontsize=8)
 plt.setp(ax9.get_yticklabels(), visible=False)
 plt.colorbar(im9, ax=ax9)
 
+plt.tight_layout()
 plt.show()
