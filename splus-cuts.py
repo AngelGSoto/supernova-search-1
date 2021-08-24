@@ -1,7 +1,7 @@
 import splusdata
 import pandas as pd
 
-conn = splusdata.connect('juliamoliveira', '10203040')
+conn = splusdata.connect('user', 'pass')
 
 df = pd.read_csv('selected-gals.csv')
 
