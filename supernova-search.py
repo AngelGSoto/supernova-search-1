@@ -48,7 +48,8 @@ def splusCuts(table, bands):
 
     for key, value in table.iterrows():
         hdu = conn.get_cut(value.RA, value.DEC, 128, bands.capitalize())
-        imagename = './data/splus/%s_%.6f_%.6f.fz' % (value.ID, value.RA, value.DEC)
+        ID = value.ID[2:len(value.ID)-2]
+        imagename = './data/splus/%s_%.6f_%.6f.fz' % (ID, value.RA, value.DEC)
         hdu.writeto(imagename)
         fz2fits(imagename)
 
@@ -226,7 +227,8 @@ def sdssCuts(width, table, bands, outfolder):
         for i in range(len(table)):
             ra = table['RA'][i]
             dec = table['DEC'][i]
-            id = table['ID'][i]
+            id_name = table['ID'][i]
+            id = id_name[1:]
 
             id_st = '{:s}'.format(id)
             ra_st = '{:.6f}'.format(ra)
