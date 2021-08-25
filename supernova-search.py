@@ -23,11 +23,11 @@ def main():
     outfolder_sdss = './data/sdss'
     outfolder_splus = './data/splus'
 
-    #splusCuts(table, bands[0])
-    #sdssCuts(width, table, bands, outfolder_sdss)
-    #cutFits(table, bands[0])
-    #reprojection(table, outfolder_splus, outfolder_sdss)
-    gaussian()
+    splusCuts(table, bands[0])
+    sdssCuts(width, table, bands, outfolder_sdss)
+    cutFits(table, bands[0])
+    reprojection(table, outfolder_splus, outfolder_sdss)
+    #gaussian(table, outfolder_sdss, outfolder_splus)
 
 # --------------------------------------------------------------------
 # FZ TO FITS
@@ -44,7 +44,7 @@ def fz2fits(image):
 # Code by Gustavo Schwarz (www.github.com/Schwarzam/splusdata)
 
 def splusCuts(table, bands):
-    conn = splusdata.connect('juliamoliveira', '10203040')
+    conn = splusdata.connect('user', 'password')
 
     for key, value in table.iterrows():
         hdu = conn.get_cut(value.RA, value.DEC, 128, bands.capitalize())
@@ -263,9 +263,9 @@ def cutFits(table, bands):
         id_ = table['ID'][i]
         fwhm = table['FWHM_' + bands.capitalize()][i]
 
-        margin = 5 * fwhm * u.arcsec
+        margin = 3 * fwhm * u.arcsec
 
-        name = './data/splus/%s_%.6f_%.6f' % (id_, ra, dec)
+        name = './data/splus/%s_%.6f_%.6f % (id_, ra, dec)'
         filename = name + ".fits"
 
         hdu_ = fits.open(filename)
@@ -338,33 +338,74 @@ def reprojection(table, outfolder_splus, outfolder_sdss):
         id_ = table['ID'][i]
 
         name = '%s_%.6f_%.6f' % (id_, ra, dec)
+
         hdu_splus = fits.open(outfolder_splus + '/' + name + '-crop.fits')[0]
 
         sdss_files = os.listdir(outfolder_sdss + '/' + name)
         filename_sdss = outfolder_sdss + '/' + name + '/' + sdss_files[0]
         hdu_sdss = fits.open(gzip.open(filename_sdss))[0]
+        #hdu_sdss = fits.open(filename_sdss)[0]
 
         array, footprint = reproject_interp(hdu_sdss, hdu_splus.header)
-        fits.writeto(outfolder_sdss + '/' + name + '/' + name + '.fits', array, hdu_sdss.header, overwrite=True)
+        fits.writeto(outfolder_sdss + '/' + name + '/' + name + '-rep.fits', array, hdu_sdss.header, overwrite=True)
 
 # --------------------------------------------------------------------
-# APLLYING GAUSSIAN FILTER
+# APPLYING GAUSSIAN FILTER
 
-def gaussian():
+def gaussian(table, outfolder_sdss, outfolder_splus):
 
-    fig = plt.figure()
-    # hdu = fits.open('frame-r-006372-5-0073.fits')
-    hdu = fits.open('iDR3.STRIPE82-0001.000260-crop.fits')
-    data = hdu[0].data
-    ax1 = fig.add_subplot(121)
-    ax2 = fig.add_subplot(122)
-    ascent = data
-    result = gaussian_filter(data, sigma=1)
-    ax1.imshow(ascent, vmin=0, vmax=3)
-    ax2.imshow(result, vmin=0, vmax=3)
-    plt.show()
+    #for i in range(len(table)):
+    for i in range(1):
+        ra = table['RA'][i]
+        dec = table['DEC'][i]
+        id_ = table['ID'][i]
 
-    #criar arquivo fits
+        name = '%s_%.6f_%.6f' % (id_, ra, dec)
+        fig = plt.figure()
+        hdu = fits.open(outfolder_sdss + '/' + name + '/' + name + '.fits')
+        #hdu = fits.open(outfolder_sdss + '/' + name + '/' + name + '-rep.fits')
+        data = hdu[0].data
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        ascent = data
+        result = gaussian_filter(data, sigma=5)
+        #ax1.imshow(ascent, vmin=0, vmax=3)
+        #ax2.imshow(result, vmin=0, vmax=3)
+        ax1.imshow(ascent)
+        ax2.imshow(result)
+        plt.show()
+
+        plt.hist(hdu[0].data.flatten())
+        print('\n', np.std(hdu[0].data))
+        plt.show()
+
+        #fits.writeto(outfolder_sdss + '/' + name + '/' + name + '-conv.fits', array, hdu_sdss.header, overwrite=True)
+
+    #for i in range(len(table)):
+    for i in range(1):
+        ra = table['RA'][i]
+        dec = table['DEC'][i]
+        id_ = table['ID'][i]
+
+        name = '%s_%.6f_%.6f' % (id_, ra, dec)
+        fig = plt.figure()
+        hdu = fits.open(outfolder_splus + '/' + name + '-crop.fits')
+        data = hdu[0].data
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        ascent = data
+        result = gaussian_filter(data, sigma=2)
+        #ax1.imshow(ascent, vmin=0, vmax=3)
+        #ax2.imshow(result, vmin=0, vmax=3)
+        ax1.imshow(ascent)
+        ax2.imshow(result)
+        plt.show()
+
+        plt.hist(hdu[0].data.flatten())
+        print('\n', np.std(hdu[0].data))
+        plt.show()
+
+        #fits.writeto(outfolder_sdss + '/' + name + '/' + name + '-conv.fits', array, hdu_sdss.header, overwrite=True)
 
 # --------------------------------------------------------------------
 
