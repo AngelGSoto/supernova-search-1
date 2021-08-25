@@ -1,16 +1,25 @@
-from astropy.io import fits
-from astropy.table import Table
+import splusdata
+import getpass
+import pandas as pd
 
-f = fits.open('./data/STRIPE82-0001.fits')[1].data
+# Connecting with SPLUS database
 
-mask = f['CLASS_STAR_R'] < 0.5
-mask &= f['R_auto'] > 13.
-mask &= f['e_R_auto'] < 0.15
-mask &= f['FWHM_R'] != 0.
-mask &= (f['PhotoFlag_R'] == 0.) | (f['PhotoFlag_R'] == 2.)
+username = input(prompt="Login: ")
+password = getpass.getpass("Password: ")
+conn = splusdata.connect(username, password)
 
-cols = [f['ID'][mask], f['RA'][mask], f['DEC'][mask], f['FWHM_R'][mask]]
-names = ['ID', 'RA', 'DEC', 'FWHM_R']
-tab = Table(cols, names=names)
+# Reading the csv table
+df = pd.read_csv('selected-gals.csv')
+df.head(3)
 
-tab.write('./data/selected-gals.csv', overwrite=True)
+# Query with our criteria nad join the tables
+Query = f"""SELECT upl.ID, upl.RA, upl.DEC, upl.FWHM_R, sgq.PROB_STAR, sgq.PROB_QSO, sgq.PROB_GAL 
+                 FROM TAP_UPLOAD.upload AS upl LEFT OUTER JOIN "idr3_vacs"."star_galaxy_quasar" AS sgq 
+                 ON upl.id = sgq.id WHERE "CLASS" = 2"""
+
+# Applien query
+result = conn.query(Query, df)
+
+#Converting the astropy table into pandas and saving
+df_result = result.to_pandas()
+df_result.to_csv("selected-gals-class-liliane.csv")
