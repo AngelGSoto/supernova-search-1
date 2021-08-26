@@ -99,6 +99,7 @@ def getSDSSfields(ra, dec, size):  # all in degree
     field_lst = []
     for i in np.arange(2,N):
         line = str(lines[i])
+        print(lines[1])
         line = line.split(',')
         run    = line[1]
         camcol = line[2]
@@ -106,7 +107,7 @@ def getSDSSfields(ra, dec, size):  # all in degree
         ra_    = line[4]
         dec_   = line[5]
         field_lst.append([run, camcol, field])
-  
+
     return field_lst
 
 #################################################
