@@ -48,7 +48,7 @@ def splusCuts(table, bands):
 
     for key, value in table.iterrows():
         hdu = conn.get_cut(value.RA, value.DEC, 128, bands.capitalize())
-        ID = value.ID[2:len(value.ID)-2]
+        ID = value.ID[2:len(value.ID)-1]
         imagename = './data/splus/%s_%.6f_%.6f.fz' % (ID, value.RA, value.DEC)
         hdu.writeto(imagename)
         fz2fits(imagename)
@@ -228,7 +228,7 @@ def sdssCuts(width, table, bands, outfolder):
             ra = table['RA'][i]
             dec = table['DEC'][i]
             id_name = table['ID'][i]
-            id = id_name[1:]
+            id = id_name[2:len(id_name)-1]
 
             id_st = '{:s}'.format(id)
             ra_st = '{:.6f}'.format(ra)
@@ -262,12 +262,13 @@ def cutFits(table, bands):
     for i in range(len(table)):
         ra = table['RA'][i]
         dec = table['DEC'][i]
-        id_ = table['ID'][i]
+        id_1 = table['ID'][i]
+        id_ = id_1[2:len(id_1) - 1]
         fwhm = table['FWHM_' + bands.capitalize()][i]
 
         margin = 3 * fwhm * u.arcsec
 
-        name = './data/splus/%s_%.6f_%.6f % (id_, ra, dec)'
+        name = './data/splus/%s_%.6f_%.6f' % (id_, ra, dec)
         filename = name + ".fits"
 
         hdu_ = fits.open(filename)
@@ -337,7 +338,8 @@ def reprojection(table, outfolder_splus, outfolder_sdss):
     for i in range(len(table)):
         ra = table['RA'][i]
         dec = table['DEC'][i]
-        id_ = table['ID'][i]
+        id_1 = table['ID'][i]
+        id_ = id_1[2:len(id_1) - 1]
 
         name = '%s_%.6f_%.6f' % (id_, ra, dec)
 
