@@ -2,6 +2,7 @@ from astropy.io import fits
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from astropy.convolution import convolve, Gaussian2DKernel, Box2DKernel
 from astropy.visualization import MinMaxInterval
 from scipy.ndimage import gaussian_filter
@@ -18,6 +19,12 @@ for i in range(len(table)):
 
     hdu_splus = fits.open('./data/splus/' + filename + '-crop.fits')
     hdu_sdss = fits.open('./data/sdss/' + filename + '/' + filename + '-rep.fits')
+
+    print('\n*****************************************************')
+    print('Objeto: ', filename)
+    print('RA: ', ra)
+    print('DEC: ', dec)
+    print('----------------------------------------------------')
 
     ### SPLUS ###
     '''
@@ -156,8 +163,11 @@ for i in range(len(table)):
     print('\nResidue (Gauss) (min and max): %s and %s' % (res_gauss.min(), res_gauss.max()))
     print('Standard Deviation: %s \nMedian: %s' % (np.std(res_gauss), np.median(res_gauss)))
 
-    fig = plt.figure()
-    fig.suptitle(filename)
+    '''
+    #PLOT 9 IMAGENS
+
+    fig = plt.figure(figsize=(6.5, 6))
+    fig.suptitle(filename, y=0.965)
     ax1 = fig.add_subplot(331)
     ax2 = fig.add_subplot(332)
     ax3 = fig.add_subplot(333)
@@ -170,7 +180,6 @@ for i in range(len(table)):
 
     ax1.imshow(hdu_splus[0].data, origin='lower')
     ax1.set_title('Resampled SPLUS', fontsize=9)
-    plt.setp(ax1.get_yticklabels(), visible=False)
     plt.setp(ax1.get_xticklabels(), visible=False)
 
     ax2.imshow(hdu_sdss[0].data, origin='lower')
@@ -186,7 +195,6 @@ for i in range(len(table)):
 
     ax4.imshow(norm_splus, origin='lower')
     ax4.set_title('Normalized SPLUS', fontsize=9)
-    plt.setp(ax4.get_yticklabels(), visible=False)
     plt.setp(ax4.get_xticklabels(), visible=False)
 
     ax5.imshow(norm_sdss, origin='lower')
@@ -202,19 +210,46 @@ for i in range(len(table)):
 
     im7 = ax7.imshow(result1, origin='lower')
     ax7.set_title('Gaussian SPLUS', fontsize=9)
-    plt.setp(ax7.get_yticklabels(), visible=False)
-    plt.setp(ax7.get_xticklabels(), visible=False)
 
     im8 = ax8.imshow(result2, origin='lower')
     ax8.set_title('Gaussian SDSS', fontsize=9)
     plt.setp(ax8.get_yticklabels(), visible=False)
-    plt.setp(ax8.get_xticklabels(), visible=False)
 
     im9 = ax9.imshow(res_gauss, origin='lower')
     ax9.set_title('Gaussian Residue', fontsize=9)
     plt.setp(ax9.get_yticklabels(), visible=False)
-    plt.setp(ax9.get_xticklabels(), visible=False)
     plt.colorbar(im9, ax=ax9)
 
     plt.tight_layout()
     plt.savefig('./results/' + filename + '.png')
+    #plt.show()
+    '''
+
+    #'''
+    #PLOT 3 IMAGENS
+
+    fig = plt.figure(figsize=(6.5, 2.5))
+    fig.suptitle(filename, y=0.93)
+    ax1 = fig.add_subplot(131)
+    ax2 = fig.add_subplot(132)
+    ax3 = fig.add_subplot(133)
+
+    im1 = ax1.imshow(result1, origin='lower')
+    ax1.set_title('SPLUS', fontsize=9)
+
+    im2 = ax2.imshow(result2, origin='lower')
+    ax2.set_title('SDSS', fontsize=9)
+    plt.setp(ax2.get_yticklabels(), visible=False)
+
+    im = ax3.imshow(np.arange(100).reshape((10, 10)))
+    im3 = ax3.imshow(res_gauss, origin='lower')
+    ax3.set_title('Residue (SPLUS - SDSS)', fontsize=9)
+    plt.setp(ax3.get_yticklabels(), visible=False)
+    divider = make_axes_locatable(ax3)
+    cax = ax3.inset_axes([1.05, 0, 0.05, 1], transform=ax3.transAxes)
+    plt.colorbar(im3, cax=cax)
+
+    plt.tight_layout()
+    plt.savefig('./results/gaussian/' + filename + '.png')
+    #plt.show()
+    #'''
