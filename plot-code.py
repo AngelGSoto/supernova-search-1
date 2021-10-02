@@ -3,9 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from astropy.convolution import convolve, Gaussian2DKernel, Box2DKernel
-from astropy.visualization import MinMaxInterval
-from scipy.ndimage import gaussian_filter
+from astropy.convolution import convolve, Gaussian2DKernel
 
 tablefile = './data/selected-gals.csv'
 table = pd.read_csv(f'{tablefile}', nrows=50)
