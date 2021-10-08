@@ -24,11 +24,10 @@ def main():
     outfolder_sdss = './data/sdss'
     outfolder_splus = './data/splus'
 
-    #splusCuts(table, bands[0])
-    #sdssCuts(width, table, bands, outfolder_sdss)
+    splusCuts(table, bands[0])
+    sdssCuts(width, table, bands, outfolder_sdss)
     cutFits(table, bands[0])
     reprojection(table, outfolder_splus, outfolder_sdss)
-    #gaussian(table, outfolder_sdss, outfolder_splus)
 
 # --------------------------------------------------------------------
 # FZ TO FITS
