@@ -1,6 +1,7 @@
 import splusdata
 import getpass
 import pandas as pd
+from astropy.table import Table
 
 # Connecting with SPLUS database
 
@@ -40,3 +41,8 @@ result = conn.query(Query, df)
 # Converting the astropy table into pandas and saving
 df_result = result.to_pandas()
 df_result.to_csv('./results/candidates-vacs.csv', index=False)
+
+# Joining tables
+res = pd.read_csv('./results/candidates-vacs.csv')
+tab = pd.concat([df, res.iloc[:, 3:]], sort=False, axis=1)
+tab.to_csv('./results/candidates-data.csv', index=False)
