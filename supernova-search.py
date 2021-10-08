@@ -7,13 +7,9 @@ import os
 import sqlcl
 import gzip
 import getpass
-import matplotlib.pyplot as plt
 from astropy.io import fits
 from astropy import wcs, coordinates as coord, units as u
-from astropy.wcs import WCS
 from reproject import reproject_interp
-from scipy.ndimage import gaussian_filter
-from scipy import misc
 
 def main():
     # Change for different SDSS cuts
