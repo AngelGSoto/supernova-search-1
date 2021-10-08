@@ -3,9 +3,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from astropy.convolution import convolve, Gaussian2DKernel
+from astropy.convolution import convolve, Gaussian2DKernel, Box2DKernel
+from astropy.visualization import MinMaxInterval
+from scipy.ndimage import gaussian_filter
 
-tablefile = './data/selected-gals.csv'
+tablefile = './data/selected-gals-vac.csv'
 table = pd.read_csv(f'{tablefile}', nrows=50)
 
 for i in range(len(table)):
@@ -69,12 +71,12 @@ for i in range(len(table)):
     ax3.set_title('Gaussian', fontsize=10)
     plt.show()
     '''
-
+    '''
     print('\nSPLUS')
     print('Original (min and max): %s and %s' % (hdu_splus[0].data.min(), hdu_splus[0].data.max()))
     print('Final (min and max): %s and %s' % (result1.min(), result1.max()))
     print('----------------------------------------------------')
-
+    '''
 
     ### SDSS ###
 
@@ -122,12 +124,12 @@ for i in range(len(table)):
     ax3.set_title('Gaussian', fontsize=10)
     plt.show()
     '''
-
+    '''
     print('\nSDSS')
     print('Original (min and max): %s and %s' % (hdu_sdss[0].data.min(), hdu_sdss[0].data.max()))
     print('Final (min and max): %s and %s' % (result2.min(), result2.max()))
     print('----------------------------------------------------')
-
+    '''
 
     ### RESIDUE ###
 
@@ -151,7 +153,7 @@ for i in range(len(table)):
     plt.show()
     '''
 
-
+    '''
     print('\nResidue (min and max): %s and %s' % (res.min(), res.max()))
     print('Standard Deviation: %s \nMedian: %s' % (np.std(res), np.median(res)))
     print('----------------------------------------------------')
@@ -160,8 +162,9 @@ for i in range(len(table)):
     print('----------------------------------------------------')
     print('\nResidue (Gauss) (min and max): %s and %s' % (res_gauss.min(), res_gauss.max()))
     print('Standard Deviation: %s \nMedian: %s' % (np.std(res_gauss), np.median(res_gauss)))
-
     '''
+
+    #'''
     #PLOT 9 IMAGENS
 
     fig = plt.figure(figsize=(6.5, 6))
@@ -219,9 +222,9 @@ for i in range(len(table)):
     plt.colorbar(im9, ax=ax9)
 
     plt.tight_layout()
-    plt.savefig('./results/' + filename + '.png')
+    plt.savefig('./results/images/' + filename + '.png')
     #plt.show()
-    '''
+    #'''
 
     #'''
     #PLOT 3 IMAGENS
@@ -248,6 +251,6 @@ for i in range(len(table)):
     plt.colorbar(im3, cax=cax)
 
     plt.tight_layout()
-    plt.savefig('./results/gaussian/' + filename + '.png')
+    plt.savefig('./results/images/gaussian/' + filename + '.png')
     #plt.show()
     #'''
