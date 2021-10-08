@@ -5,7 +5,6 @@ import pandas as pd
 # Connecting with SPLUS database
 
 username = str(input("Login: "))
-#username = 'juliamoliveira'
 password = getpass.getpass("Password: ")
 conn = splusdata.connect(username, password)
 
