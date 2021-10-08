@@ -1,4 +1,5 @@
 from astropy.io import fits
+from astropy.table import Table
 import numpy as np
 import pandas as pd
 from astropy.convolution import convolve, Gaussian2DKernel
@@ -6,14 +7,13 @@ import splusdata
 import getpass
 
 username = str(input("Login: "))
-#username = 'juliamoliveira'
 password = getpass.getpass("Password: ")
 conn = splusdata.connect(username, password)
 
 newtable = []
 
 tablefile = './data/selected-gals-vac.csv'
-table = pd.read_csv(f'{tablefile}', nrows=10)
+table = pd.read_csv(f'{tablefile}', nrows=50)
 
 for i in range(len(table)):
     ra = table['RA'][i]
@@ -68,3 +68,12 @@ for i in range(len(table)):
 cols = ['ID', 'RA', 'DEC', 'MAX', 'MIN', 'RES']
 df = pd.DataFrame(newtable, columns=cols)
 df.to_csv('./results/candidates.csv', index=False)
+
+# RA, DEC, SEP FOR SPECTRA SEARCH #
+cand = pd.read_csv('./results/candidates.csv')
+sep = np.linspace(2.0/60., 2.0/60., num=len(cand))
+cols = [cand['RA'][0:len(cand)], cand['DEC'][0:len(cand)], sep]
+names = ['ra', 'dec', 'sep']
+
+tab = Table(cols, names=names)
+tab.write('./results/radec.csv', overwrite=True)
