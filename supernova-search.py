@@ -14,15 +14,16 @@ from reproject import reproject_interp
 def main():
     # Change for different SDSS cuts
     width = 0.075
-    tablefile = './data/selected-gals-vac.csv'
-    table = pd.read_csv(f'{tablefile}', nrows=50)
+    tablefile = './data/selected-gals.csv'
+    table = pd.read_csv(tablefile, nrows=400)
     bands = ['r']
     outfolder_sdss = './data/sdss'
     outfolder_splus = './data/splus'
+    outfolder_splus = './data/splus'
 
-    splusCuts(table, bands[0])
-    sdssCuts(width, table, bands, outfolder_sdss)
-    cutFits(table, bands[0])
+    #splusCuts(table, bands[0])
+    #sdssCuts(width, table, bands, outfolder_sdss)
+    #cutFits(table, bands[0])
     reprojection(table, outfolder_splus, outfolder_sdss)
 
 # --------------------------------------------------------------------
@@ -46,8 +47,8 @@ def splusCuts(table, bands):
 
     for key, value in table.iterrows():
         hdu = conn.get_cut(value.RA, value.DEC, 128, bands.capitalize())
-        ID = value.ID[2:len(value.ID)-1]
-        imagename = './data/splus/%s_%.6f_%.6f.fz' % (ID, value.RA, value.DEC)
+        #ID = value.ID[0:len(value.ID)-1]  ???
+        imagename = './data/splus/%s_%.6f_%.6f.fz' % (value.ID, value.RA, value.DEC)
         hdu.writeto(imagename)
         fz2fits(imagename)
 
@@ -261,12 +262,12 @@ def cutFits(table, bands):
         ra = table['RA'][i]
         dec = table['DEC'][i]
         id_1 = table['ID'][i]
-        id_ = id_1[2:len(id_1) - 1]
+        #id_ = id_1[2:len(id_1) - 1]
         fwhm = table['FWHM_' + bands.capitalize()][i]
 
         margin = 3 * fwhm * u.arcsec
 
-        name = './data/splus/%s_%.6f_%.6f' % (id_, ra, dec)
+        name = './data/splus/%s_%.6f_%.6f' % (id_1, ra, dec)
         filename = name + ".fits"
 
         hdu_ = fits.open(filename)
@@ -337,18 +338,25 @@ def reprojection(table, outfolder_splus, outfolder_sdss):
         ra = table['RA'][i]
         dec = table['DEC'][i]
         id_1 = table['ID'][i]
-        id_ = id_1[2:len(id_1) - 1]
-
-        name = '%s_%.6f_%.6f' % (id_, ra, dec)
+        #id_ = id_1[0:len(id_1) - 1]
+        name = '%s_%.6f_%.6f' % (id_1, ra, dec)
 
         hdu_splus = fits.open(outfolder_splus + '/' + name + '-crop.fits')[0]
 
-        sdss_files = os.listdir(outfolder_sdss + '/' + name)
-        filename_sdss = outfolder_sdss + '/' + name + '/' + sdss_files[0]
-        hdu_sdss = fits.open(gzip.open(filename_sdss))[0]
-        #hdu_sdss = fits.open(filename_sdss)[0]
+        pasta = outfolder_sdss + '/' + name
+        try:
+            caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
+        except FileNotFoundError:
+            continue
+        arquivos = [arq for arq in caminhos if os.path.isfile(arq)]
+        sdss_files = [arq for arq in arquivos if arq.lower().endswith(".fits.gz")]
 
-        array, footprint = reproject_interp(hdu_sdss, hdu_splus.header)
-        fits.writeto(outfolder_sdss + '/' + name + '/' + name + '-rep.fits', array, hdu_sdss.header, overwrite=True)
+        for i in range(len(sdss_files)):
+            filename_sdss = sdss_files[i]
+            hdu_sdss = fits.open(gzip.open(filename_sdss))[0]
+            array, footprint = reproject_interp(hdu_sdss, hdu_splus.header)
+            fits.writeto(outfolder_sdss + '/' + name + '/' + name + '-rep' + str(i) + '.fits', array, hdu_sdss.header, overwrite=True)
+
+# --------------------------------------------------------------------
 
 main()
