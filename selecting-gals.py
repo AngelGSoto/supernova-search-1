@@ -11,6 +11,6 @@ mask &= (f['PhotoFlag_R'] == 0.) | (f['PhotoFlag_R'] == 2.)
 
 cols = [f['ID'][mask], f['RA'][mask], f['DEC'][mask], f['FWHM_R'][mask]]
 names = ['ID', 'RA', 'DEC', 'FWHM_R']
-tab = Table(cols, names=names)
 
+tab = Table(cols, names=names)
 tab.write('./data/selected-gals.csv', overwrite=True)

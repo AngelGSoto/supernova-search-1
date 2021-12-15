@@ -3,14 +3,18 @@ import getpass
 import pandas as pd
 from astropy.table import Table
 
-# Connecting with SPLUS database
+'''
+Code to collect data from candidate objects
+The table used here (candidates.csv) is from the analysis.py code
+'''
 
+# Connecting with SPLUS database
 username = str(input("Login: "))
 password = getpass.getpass("Password: ")
 conn = splusdata.connect(username, password)
 
 # Reading the csv table
-df = pd.read_csv('./results/candidates.csv')
+df = pd.read_csv('./results/candidates.csv')  # Columns: ID,RA,DEC,MAX,MIN,RES
 
 # Query with our criteria nad join the tables
 Query = f"""SELECT detection.ID, detection.RA, detection.DEC, r.FWHM_r, 
@@ -41,8 +45,14 @@ result = conn.query(Query, df)
 # Converting the astropy table into pandas and saving
 df_result = result.to_pandas()
 df_result.to_csv('./results/candidates-vacs.csv', index=False)
+# Columns:ID,RA,DEC,FWHM_r,u_auto,J0378_auto,J0395_auto,J0410_auto,J0430_auto,g_auto,J0515_auto,r_auto,
+        # J0660_auto,i_auto,J0861_auto,z_auto,e_u_auto,e_J0378_auto,e_J0395_auto,e_J0410_auto,e_J0430_auto,
+        # e_g_auto,e_J0515_auto,e_r_auto,e_J0660_auto,e_i_auto,e_J0861_auto,e_z_auto,zml
 
 # Joining tables
 res = pd.read_csv('./results/candidates-vacs.csv')
 tab = pd.concat([df, res.iloc[:, 3:]], sort=False, axis=1)
 tab.to_csv('./results/candidates-data.csv', index=False)
+# Columns:ID,RA,DEC,MAX,MIN,RES,FWHM_r,u_auto,J0378_auto,J0395_auto,J0410_auto,J0430_auto,g_auto,J0515_auto,
+        # r_auto,J0660_auto,i_auto,J0861_auto,z_auto,e_u_auto,e_J0378_auto,e_J0395_auto,e_J0410_auto,e_J0430_auto,
+        # e_g_auto,e_J0515_auto,e_r_auto,e_J0660_auto,e_i_auto,e_J0861_auto,e_z_auto,zml

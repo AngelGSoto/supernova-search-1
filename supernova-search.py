@@ -16,9 +16,8 @@ def main():
     width = 0.075
     tablefile = './data/selected-gals.csv'
     table = pd.read_csv(tablefile, nrows=400)
-    bands = ['r']
+    bands = ['r', 'g']
     outfolder_sdss = './data/sdss'
-    outfolder_splus = './data/splus'
     outfolder_splus = './data/splus'
 
     #splusCuts(table, bands[0])

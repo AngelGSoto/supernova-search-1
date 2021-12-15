@@ -2,8 +2,12 @@ import splusdata
 import getpass
 import pandas as pd
 
-# Connecting with SPLUS database
+'''
+Code to get the probability of being galaxy (Nakazono et al, 2021)
+The table used here (candidates.csv) is from the selecting-gals.py code
+'''
 
+# Connecting with SPLUS database
 username = str(input("Login: "))
 password = getpass.getpass("Password: ")
 conn = splusdata.connect(username, password)
